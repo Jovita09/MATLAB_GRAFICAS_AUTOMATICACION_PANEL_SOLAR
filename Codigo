@@ -1,0 +1,47 @@
+% Inicialización de la variable para verificar el tiempo de muestreo
+tiempoAnterior = tic; % Guardar el tiempo inicial
+tiemposMuestreo = []; % Vector para almacenar los tiempos de muestreo reales
+
+% Bucle infinito para leer los datos y graficarlos
+while true
+    try
+        % Leer datos del puerto serial
+        datos = readline(s);
+        disp(['Datos recibidos: ', datos]);  % Mostrar los datos recibidos
+
+        % Procesar los datos recibidos
+        valores = str2double(strsplit(datos, ','));  % Separar y convertir los datos
+        if length(valores) == 2 && all(~isnan(valores)) % Validar que haya dos valores y no NaN
+            potAngulo(end + 1) = valores(1);       % Guardar ángulo
+            vf(end + 1) = valores(2);             % Guardar valor del potenciómetro
+            tiempoActual = toc;                   % Guardar tiempo actual
+            tiempo(end + 1) = tiempoActual;
+
+            % Calcular y almacenar el tiempo de muestreo
+            if length(tiempo) > 1
+                tiempoMuestreoActual = tiempo(end) - tiempo(end - 1);
+                tiemposMuestreo(end + 1) = tiempoMuestreoActual;
+            end
+        else
+            disp('Formato de datos incorrecto o valores no válidos.');
+        end
+
+        % Actualizar las gráficas
+        set(h1, 'XData', tiempo, 'YData', potAngulo);
+        set(h2, 'XData', tiempo, 'YData', vf);
+
+        % Opcional: Mostrar una gráfica del tiempo de muestreo
+        subplot(3, 1, 3);
+        plot(tiemposMuestreo, 'k', 'LineWidth', 1.5);
+        xlabel('Número de Muestra');
+        ylabel('Tiempo de Muestreo (s)');
+        title('Tiempo de Muestreo Real');
+        grid on;
+
+        drawnow;  % Actualizar la figura en tiempo real
+    catch ME
+        disp(['Error: ', ME.message]);
+    end
+
+    pause(pauseTime);  % Pausa para controlar la tasa de muestreo
+end
